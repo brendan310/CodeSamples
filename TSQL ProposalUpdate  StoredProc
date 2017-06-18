@@ -1,0 +1,124 @@
+USE [C31]
+GO
+/****** Object:  StoredProcedure [dbo].[Proposal_Update]    Script Date: 6/17/2017 8:58:14 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+ALTER PROC [dbo].[Proposal_Update]
+         @Id int
+        ,@Description nvarchar(4000)
+        ,@Budget int = null
+        ,@Deadline nvarchar(50) = null
+        ,@ProjectType nvarchar(50)
+        ,@FirstName nvarchar(150)
+        ,@LastName nvarchar(150)=null
+        ,@Company nvarchar(200)=null
+        ,@PhoneNumber varchar(24)
+        ,@Email nvarchar(128)
+        ,@Notes    nvarchar(4000)=null
+        ,@Status int =null
+        ,@UserIdCreated nvarchar(128)
+        ,@ProjectId int OUTPUT
+AS
+
+
+/* ------ TEST CODE -------
+
+DECLARE  @Id int =5
+        ,@Description nvarchar(4000) = 'TEst'
+        ,@Budget int =5500
+        ,@Deadline nvarchar(50) = '1/1/2018ish'
+        ,@ProjectType nvarchar(50)='Mobile App'
+        ,@FirstName nvarchar(150)='Lry'
+        ,@LastName nvarchar(150)='Ellison'
+        ,@Company nvarchar(200)='Oracle'
+        ,@PhoneNumber varchar(24)='5565555555'
+        ,@Email nvarchar(128)='larry@larry.com'
+        ,@Notes nvarchar(4000)='Client now wants to focus on his Regatta Racing'
+        ,@Status int = 1
+        ,@UserIdCreated nvarchar(128)= 'test'
+        ,@ProjectId int
+
+
+
+
+EXEC    [dbo].[Proposal_Update]
+        @Id
+        ,@Description
+        ,@Budget
+        ,@Deadline
+        ,@ProjectType
+        ,@FirstName
+        ,@LastName
+        ,@Company
+        ,@PhoneNumber
+        ,@Email
+        ,@Notes
+        ,@Status
+        ,@UserIdCreated
+        ,@ProjectId OUTPUT
+
+
+        SELECT *
+        FROM dbo.Proposal
+        WHERE Id = @Id
+
+        SELECT *
+        FROM dbo.Project
+
+
+
+*/
+    Declare @PriorStatus int
+
+
+    SELECT
+         @PriorStatus=[Status]
+    FROM  [dbo].[Proposal]
+    WHERE Id = @Id
+
+
+    UPDATE [dbo].Proposal
+       SET  [Description]=@Description
+           ,Budget=@Budget
+           ,Deadline= @Deadline
+           ,ProjectType=@ProjectType
+           ,FirstName=@FirstName
+           ,LastName=@LastName
+           ,Company=@Company
+           ,PhoneNumber=@PhoneNumber
+           ,Email=@Email
+           ,Notes=@Notes
+           ,[Status]=@Status
+        WHERE Id = @Id
+
+     IF (@PriorStatus!=1 and @Status =1)
+     BEGIN
+
+
+     DECLARE @ProjectDeadline datetime2(7)
+            , @ProjectName nvarchar(50)
+
+
+        SELECT @ProjectDeadline = TRY_PARSE(prop.Deadline AS datetime2(7))
+                , @ProjectName = CONCAT(prop.FirstName, ISNULL(prop.LastName, ''))
+                , @Description = Description
+        FROM Proposal prop
+        WHERE Prop.Id = @Id
+
+        EXEC Project_Insert
+            @ProjectName = @ProjectName
+            , @Description = @Description
+            , @Budget = @Budget
+            , @Deadline = @ProjectDeadline
+            , @UserIdCreated = @UserIdCreated
+            , @Id = @ProjectId OUTPUT
+
+
+         /*Select @ProjectId= SCOPE_IDENTITY()*/
+    END
+
+

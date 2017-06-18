@@ -1,0 +1,42 @@
+USE [C31]
+GO
+/****** Object:  StoredProcedure [dbo].[Testimonial_Search]    Script Date: 6/17/2017 9:04:44 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE [dbo].[Testimonial_Search] 	
+	@Inactive bit NULL
+AS
+BEGIN	
+
+/* Test Code
+
+EXEC Testimonial_Search @Inactive=1
+
+
+*/
+	SET NOCOUNT ON;
+    SELECT Testimonial.Id
+		, Testimonial
+		, Testimonial.DateCreated
+		, Testimonial.DateModified
+		, Person.Id AS PersonId
+		, Person.FirstName
+		, Person.MiddleName
+		, Person.LastName
+		, Person.PhoneNumber
+		, Person.Email
+		, Person.JobTitle
+		,Person.PhotoKey
+		,Testimonial.Inactive
+	FROM Testimonial
+	JOIN dbo.Person ON dbo.Testimonial.PersonId = dbo.Person.Id
+	WHERE ((
+	
+	@Inactive IS NULL AND Testimonial.Inactive IS NULL) OR Testimonial.Inactive = @Inactive) 
+	
+END
+
+

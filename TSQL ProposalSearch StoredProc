@@ -1,0 +1,42 @@
+USE [C31]
+GO
+/****** Object:  StoredProcedure [dbo].[Proposal_Search]    Script Date: 6/17/2017 9:03:04 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE [dbo].[Proposal_Search]
+	
+	 @Status int =NULL
+	 ,@Name nvarchar(50)=NULL
+
+AS
+--EXEC Proposal_Search @Name = "Accepted"
+BEGIN
+	SELECT 
+         
+			p.Id
+           ,[Description]
+           ,Budget
+           ,Deadline
+		   ,ProjectType
+		   ,FirstName
+		   ,LastName
+		   ,Company
+		   ,PhoneNumber
+		   ,Email
+		   ,Notes
+		   ,[Status]
+		   ,psc.Name AS StatusName
+
+        FROM  [dbo].[Proposal] p
+			LEFT JOIN ProposalStatusCategory psc
+			ON p.Status = psc.Id
+							
+		WHERE ((
+			@Status IS NULL OR @Status = 0) OR p.Status = @Status) 
+			AND (@Name IS NULL OR psc.Name = @Name)
+			ORDER BY p.Id Desc
+END
+
